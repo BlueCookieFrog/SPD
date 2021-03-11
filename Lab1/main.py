@@ -6,7 +6,7 @@ def generate_instance(seed, n):
     rng = generator(seed)
 
     # 2D list (list of n 3-item lists [[0, 0, 0], [0, 0, 0]...])
-    data = [[0 for x in range(3)] for _ in range(n)]
+    data = [[0 for _ in range(3)] for _ in range(n)]
 
     # Sum of all execution times
     A = 0
