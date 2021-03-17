@@ -52,6 +52,7 @@ def schrage(data):
     almost good, but 9 and 1 are flipped
     """
     G = []
+    # sorted by
     N = sorted(data, key=lambda x: x[1])
     t = N[0][1]
     pi = []
@@ -62,13 +63,12 @@ def schrage(data):
             G.append(N[0])
             N.pop(0)
         if len(G) != 0:
-            max_q = sorted(G, key=lambda x: x[3])
-            G.pop(G.index(max_q[len(max_q) - 1]))
-            pi.append(max_q[len(max_q) - 1])
-            t = t + max_q[len(max_q) - 1][2]
+            max_q = sorted(G, key=lambda x: x[3])[len(G) - 1]
+            G.pop(G.index(max_q))
+            pi.append(max_q)
+            t = t + max_q[2]
         else:
-            N = sorted(N, key=lambda x: x[1])
-            t = N[0]
+            t = sorted(N, key=lambda x: x[1])[0]
     return pi
 
 
@@ -99,8 +99,8 @@ def solution(data):
     print(f"pi: {pi}")
     print(f"S: {S}")
     print(f"C: {C}")
-    print(f"Cq: {Cq}\n")
-    print(f"Cmax = {max(Cq)}")
+    print(f"Cq: {Cq}")
+    print(f"Cmax = {max(Cq)}\n")
 
 
 if __name__ == "__main__":
@@ -113,12 +113,13 @@ if __name__ == "__main__":
     data = generate_instance(seed, n, "A")
 
     # solution for natural permutation
+    print("Permutacja naturalna: ")
     solution(data)
 
     # solution for data sorted by r
     # data_sorted = sorted(data, key=lambda x: x[1])
 
+    print("Schrage: ")
     data_sorted = schrage(data)
-    print(data_sorted)
 
     solution(data_sorted)
