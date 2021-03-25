@@ -5,7 +5,9 @@ import numpy as np
 class Instance:
     def __init__(self, seed, n) -> None:
         self.__rng = Generatotr(seed)
-        self.data = np.array([[0 for _ in range(4)] for _ in range(n)])
+        # 2D list (list of n 4-item lists [[0, 0, 0, 0], [0, 0, 0, 0]...])
+        # self.data = np.zeros((4, n), dtype = int)
+        self.data = [[0 for _ in range(4)] for _ in range(n)]
         self.__n = n
 
     def generate_instance(self, max_q=None) -> None:
@@ -31,10 +33,11 @@ class Instance:
 
     def print_instance(self) -> None:
 
-        print(f"nr: {np.array2string(self.data[:, 0], separator=', ')}")
-        print(f"r:  {np.array2string(self.data[:, 1], separator=', ')}")
-        print(f"p:  {np.array2string(self.data[:, 2], separator=', ')}")
-        print(f"q:  {np.array2string(self.data[:, 3], separator=', ')}\n")
+        temp = np.array(self.data)
+        print(f"nr: {np.array2string(temp[:, 0], separator=', ')}")
+        print(f"r:  {np.array2string(temp[:, 1], separator=', ')}")
+        print(f"p:  {np.array2string(temp[:, 2], separator=', ')}")
+        print(f"q:  {np.array2string(temp[:, 3], separator=', ')}\n")
 
 
 def schrage(data) -> list:
@@ -54,7 +57,6 @@ def schrage(data) -> list:
             N.pop(0)
         if len(G) != 0:
             max_q = sorted(G, key=lambda x: x[3])[-1]
-            print(sorted(G, key=lambda x: x[3]))
             G.pop(G.index(max_q))
             pi.append(max_q)
             t = t + max_q[2]
@@ -73,4 +75,10 @@ if __name__ == "__main__":
     Rng.generate_instance()
     Rng.print_instance()
 
-    schrage(Rng.data)
+    pi = schrage(Rng.data)
+    pi = np.array(pi)
+    print(f"nr: {np.array2string(pi[:, 0], separator=', ')}")
+    print(f"r:  {np.array2string(pi[:, 1], separator=', ')}")
+    print(f"p:  {np.array2string(pi[:, 2], separator=', ')}")
+    print(f"q:  {np.array2string(pi[:, 3], separator=', ')}\n")
+
