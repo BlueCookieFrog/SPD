@@ -1,7 +1,6 @@
 from generator import RandomNumberGenerator as Generatotr
 import numpy as np
 
-
 class Instance:
     def __init__(self, seed, n) -> None:
         self.__rng = Generatotr(seed)
@@ -39,30 +38,69 @@ class Instance:
         print(f"p:  {np.array2string(temp[:, 2], separator=', ')}")
         print(f"q:  {np.array2string(temp[:, 3], separator=', ')}\n")
 
+class Schrage:
+    def __init__(self, data) -> None:
+        self.data = data
+        self.pi = []
 
-def schrage(data) -> list:
-    """
-        Schrage algorythm.
-    """
-    G = []
-    # sorted by
-    N = sorted(data, key=lambda x: x[1])
-    t = N[0][1]
+    def schrage(self) -> None:
+        """
+            Schrage algorythm.
+        """
+        G = []
+        # sorted by
+        N = sorted(self.data, key=lambda x: x[1])
+        t = N[0][1]
+        max_q = []
+
+        while (len(G) != 0) or (len(N) != 0):
+            while (len(N) != 0) and (N[0][1] <= t):
+                G.append(N[0])
+                N.pop(0)
+            if len(G) != 0:
+                max_q = sorted(G, key=lambda x: x[3])[-1]
+                G.pop(G.index(max_q))
+                self.pi.append(max_q)
+                t = t + max_q[2]
+            else:
+                t = sorted(N, key=lambda x: x[1])[0]
+
+    def print_instance(self) -> None:
+        temp = np.array(self.pi)
+        print(f"nr: {np.array2string(temp[:, 0], separator=', ')}")
+        print(f"r:  {np.array2string(temp[:, 1], separator=', ')}")
+        print(f"p:  {np.array2string(temp[:, 2], separator=', ')}")
+        print(f"q:  {np.array2string(temp[:, 3], separator=', ')}\n")
+
+def solution(data):
+
+    # indexes
     pi = []
-    max_q = []
+    # start times
+    S = []
+    # finish times
+    C = []
+    # finish and deliver time
+    Cq = []
+    # last finish time
+    last_fin = 0
 
-    while (len(G) != 0) or (len(N) != 0):
-        while (len(N) != 0) and (N[0][1] <= t):
-            G.append(N[0])
-            N.pop(0)
-        if len(G) != 0:
-            max_q = sorted(G, key=lambda x: x[3])[-1]
-            G.pop(G.index(max_q))
-            pi.append(max_q)
-            t = t + max_q[2]
-        else:
-            t = sorted(N, key=lambda x: x[1])[0]
-    return pi
+    # write indexes
+    for z in range(len(data)):
+        pi.append(data[z][0])
+
+    # calculate S an C
+    for x in range(len(data)):
+        S.append(max((data[x][1], last_fin)))
+        C.append(S[x] + data[x][2])
+        last_fin = C[x]
+        Cq.append(C[x] + data[x][3])
+
+    print(f"pi: {pi}")
+    print(f"S: {S}")
+    print(f"C: {C}")
+    print(f"Cq: {Cq}")
+    print(f"Cmax = {max(Cq)}\n")
 
 
 if __name__ == "__main__":
@@ -75,10 +113,10 @@ if __name__ == "__main__":
     Rng.generate_instance()
     Rng.print_instance()
 
-    pi = schrage(Rng.data)
-    pi = np.array(pi)
-    print(f"nr: {np.array2string(pi[:, 0], separator=', ')}")
-    print(f"r:  {np.array2string(pi[:, 1], separator=', ')}")
-    print(f"p:  {np.array2string(pi[:, 2], separator=', ')}")
-    print(f"q:  {np.array2string(pi[:, 3], separator=', ')}\n")
+    schr = Schrage(Rng.data)
+    schr.schrage()
+    schr.print_instance()
+
+    solution(schr.pi)
+
 
