@@ -1,5 +1,7 @@
 from generator import RandomNumberGenerator as Generatotr
 import numpy as np
+import heapq
+
 
 class Instance:
     def __init__(self, seed, n) -> None:
@@ -38,32 +40,35 @@ class Instance:
         print(f"p:  {np.array2string(temp[:, 2], separator=', ')}")
         print(f"q:  {np.array2string(temp[:, 3], separator=', ')}\n")
 
+
 class Schrage:
     def __init__(self, data) -> None:
-        self.data = data
+        self.N = data
         self.pi = []
 
     def schrage(self) -> None:
         """
-            Schrage algorythm.
+        Schrage algorythm.
         """
         G = []
         # sorted by
-        N = sorted(self.data, key=lambda x: x[1])
-        t = N[0][1]
+        t = heapq.nsmallest(1, self.N, key=lambda x: x[1])[0][1]
         max_q = []
 
-        while (len(G) != 0) or (len(N) != 0):
-            while (len(N) != 0) and (N[0][1] <= t):
-                G.append(N[0])
-                N.pop(0)
+        while (len(G) != 0) or (len(self.N) != 0):
+            while (len(self.N) != 0) and (
+                heapq.nsmallest(1, self.N, key=lambda x: x[1])[0][1] <= t
+            ):
+                heapq.heappush(G, heapq.heappop(self.N))
+
             if len(G) != 0:
-                max_q = sorted(G, key=lambda x: x[3])[-1]
+                max_q = heapq.nlargest(1, G, key=lambda x: x[3])[0]
                 G.pop(G.index(max_q))
+                heapq.heapify(G)
                 self.pi.append(max_q)
-                t = t + max_q[2]
+                t = t + max_q[1]
             else:
-                t = sorted(N, key=lambda x: x[1])[0]
+                t = heapq.nsmallest(1, self.N, key=lambda x: x[1])[0][1]
 
     def print_instance(self) -> None:
         temp = np.array(self.pi)
@@ -71,6 +76,7 @@ class Schrage:
         print(f"r:  {np.array2string(temp[:, 1], separator=', ')}")
         print(f"p:  {np.array2string(temp[:, 2], separator=', ')}")
         print(f"q:  {np.array2string(temp[:, 3], separator=', ')}\n")
+
 
 def solution(data):
 
@@ -113,10 +119,10 @@ if __name__ == "__main__":
     Rng.generate_instance()
     Rng.print_instance()
 
+    heapq.heapify(Rng.data)
+
     schr = Schrage(Rng.data)
     schr.schrage()
     schr.print_instance()
 
     solution(schr.pi)
-
-
