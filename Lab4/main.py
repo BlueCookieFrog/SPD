@@ -1,5 +1,4 @@
 from generator import RandomNumberGenerator as Generatotr
-import numpy as np
 import pandas as pd
 import itertools
 import time
@@ -60,15 +59,15 @@ class Instance:
         print(df, "\n")
 
 
-def generate_schedule(inst: Instance, permutation: tuple) -> list:
-    """ Generates Schedule form instance based on given permutation
+def generate_schedule(inst: Instance, permutation: list) -> list:
+    """Generates Schedule form instance based on given permutation
 
     Parameters
     ----------
     inst : Instance
         Given data
-    permutation : tuple
-        Tuple with order of tasks
+    permutation : list
+        List with order of tasks
 
     Returns
     -------
@@ -90,7 +89,7 @@ def generate_schedule(inst: Instance, permutation: tuple) -> list:
         last_finish = schedule[j][2] = last_start + inst[i - 1][1]
         # time past deadline
         schedule[j][3] = max(schedule[j][2] - inst[i - 1][3], 0)
-        # weight
+        # weighted time
         schedule[j][4] = inst[i - 1][2] * schedule[j][3]
         j += 1
 
@@ -105,6 +104,7 @@ def penalty(schedule: list) -> int:
         pen += each[4]
     return pen
 
+""" Brute Force """
 
 @timefunc
 def brute_force(inst: Instance) -> list:
@@ -133,6 +133,28 @@ def brute_force(inst: Instance) -> list:
     return best
 
 
+def brute_force_main(inst: Instance) -> list:
+    # result = [<permutation: list>, penalty]
+    result = brute_force(inst)
+    schedule = generate_schedule(inst, result[0])
+
+    return schedule
+
+""" Greedy """
+
+@timefunc
+def greedy(inst: Instance) -> list:
+    return sorted(inst, key=lambda x: x[3])
+
+
+def greedy_main(inst: Instance) -> list:
+    result = greedy(inst)
+    permutation = [int(each[0]) for each in result]
+    schedule = generate_schedule(inst, permutation)
+
+    return schedule
+
+
 def setup() -> Instance:
     seed = int(input("Seed: "))
     n = int(input("Liczba maszyn: "))
@@ -146,15 +168,11 @@ def print_schedule(schedule: list) -> None:
     # Prints schedule using pandas DataFrame
     df = pd.DataFrame(schedule)
     df = df.transpose()
-    df.index = ["pi:", "S:", "C:", "T:", "W:"]
+    df.index = ["pi:", "S:", "C:", "T:", "WT:"]
     df.columns = ["" for _ in range(len(schedule))]
 
-    print(df, "\n")
-
-
-def print_result(inst: Instance, result: list) -> None:
-    schedule = generate_schedule(inst.data, result[0])
-    print_schedule(schedule)
+    print(df)
+    print(f"WT sum: {penalty(schedule)}\n")
 
 
 def main():
@@ -163,8 +181,11 @@ def main():
 
     inst.print_instance()
 
-    BF = brute_force(inst.data)
-    print_result(inst, BF)
+    BF = brute_force_main(inst.data)
+    print_schedule(BF)
+
+    greed = greedy_main(inst.data)
+    print_schedule(greed)
 
 
 if __name__ == "__main__":
