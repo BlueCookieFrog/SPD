@@ -6,11 +6,8 @@ import functools
 
 
 def timefunc(func):
-    """timefunc's doc"""
-
     @functools.wraps(func)
     def time_closure(*args, **kwargs):
-        """time_wrapper's doc string"""
         start = time.perf_counter()
         result = func(*args, **kwargs)
         time_elapsed = time.perf_counter() - start
@@ -26,11 +23,11 @@ class Instance:
         # 2D list (list of n 4-item lists [[0, 0, 0, 0], [0, 0, 0, 0]...])
         # self.data = np.zeros((4, n), dtype = int)
         self.data = [[0 for _ in range(4)] for _ in range(n)]
-        self.__n = n
+        self.n = n
 
     def generate_instance(self, max_q=None) -> None:
         A = 0
-        for x in range(self.__n):
+        for x in range(self.n):
             # indexes
             self.data[x][0] = x + 1
             # generating execution times
@@ -38,11 +35,11 @@ class Instance:
             # summing execution times
             A += self.data[x][1]
 
-        for y in range(self.__n):
+        for y in range(self.n):
             # generating weights
             self.data[y][2] = self.__rng.nextInt(1, 9)
 
-        for z in range(self.__n):
+        for z in range(self.n):
             # generating deadlines
             if max_q is None:
                 self.data[z][3] = self.__rng.nextInt(1, A)
@@ -54,7 +51,7 @@ class Instance:
         df = pd.DataFrame(self.data)
         df = df.transpose()
         df.index = ["pi:", "p:", "w:", "d:"]
-        df.columns = ["" for _ in range(self.__n)]
+        df.columns = ["" for _ in range(self.n)]
 
         print(df, "\n")
 
@@ -104,6 +101,7 @@ def penalty(schedule: list) -> int:
         pen += each[4]
     return pen
 
+
 """ Brute Force """
 
 @timefunc
@@ -140,6 +138,7 @@ def brute_force_main(inst: Instance) -> list:
 
     return schedule
 
+
 """ Greedy """
 
 @timefunc
@@ -154,6 +153,8 @@ def greedy_main(inst: Instance) -> list:
 
     return schedule
 
+
+""" Main """
 
 def setup() -> Instance:
     seed = int(input("Seed: "))
