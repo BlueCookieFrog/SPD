@@ -72,18 +72,19 @@ def print_result(data) -> None:
 
         s =  Schedule(data)
         _, C = s.generate_schedule()
-        df = pd.DataFrame(data+C)
-        df = df.transpose()
-        df.index = ["pi:", "p:", "C"]
-        df.columns = ["" for _ in range(self.n)]
+        # df = pd.DataFrame(data)
+        # df = df.transpose()
+        # df.index = ["pi:", "p:", "C"]
+        # df.columns = ["" for _ in range(len(data))]
 
-        print(df, "\n")
+        # print(df, "\n")
+        print(f"pi: {[each[0] for each in data]}")
+        print(f"C: {C}")
         print(f"Cmax: {s.C_max()}")
 
 class Schedule:
     def __init__(self, data) -> None:
         self.data = data
-        print(self.data)
 
     def generate_schedule(self) -> None:
 
@@ -118,7 +119,7 @@ def C_max(dat):
 
 def NEH(inst: Instance):
     N = inst.data
-    k = 1
+    k = 0
     W = []
     # for i, each in enumerate(N):
     #     W.append([i,each])
@@ -127,13 +128,17 @@ def NEH(inst: Instance):
         W.append(each)
 
     W.sort(key=lambda x: sum(x[1]))
+    print(W)
 
     pi_p = []
     pi_s = []
     while len(W) != 0:
         j = W.pop()
+        print(j)
         for l in range(k):
+            # print(pi_p, l)
             pi_p.insert(l, j)
+            # print(pi_p)
             try:
                 if C_max(pi_p) < C_max(pi_s):
                     pi_s = pi_p
