@@ -50,7 +50,7 @@ class Instance:
         #         # Generating machine assigned to task (μ)
         #         each[3].append(self.__rng.nextInt(1, self.m))
 
-        #For NEH
+        # For NEH
 
         for i, each in enumerate(self.data):
             each[0] = i + 1
@@ -67,20 +67,24 @@ class Instance:
 
         print(df, "\n")
 
+
 def print_result(data) -> None:
-        # print(self.data)
+    # print(self.data)
 
-        s =  Schedule(data)
-        _, C = s.generate_schedule()
-        # df = pd.DataFrame(data)
-        # df = df.transpose()
-        # df.index = ["pi:", "p:", "C"]
-        # df.columns = ["" for _ in range(len(data))]
+    s = Schedule(data)
+    _, C = s.generate_schedule()
 
-        # print(df, "\n")
-        print(f"pi: {[each[0] for each in data]}")
-        print(f"C: {C}")
-        print(f"Cmax: {s.C_max()}")
+    result = [[i[0], C_each] for i, C_each in zip(data, C)]
+    df = pd.DataFrame(result)
+    df = df.transpose()
+    df.index = ["pi:", "C"]
+    df.columns = ["" for _ in range(len(result))]
+
+    print(df, "\n")
+    # print(f"pi: {[each[0] for each in data]}")
+    # print(f"C: {C}")
+    print(f"Cmax: {s.C_max()}")
+
 
 class Schedule:
     def __init__(self, data) -> None:
@@ -88,8 +92,12 @@ class Schedule:
 
     def generate_schedule(self) -> None:
 
-        self.S = [[0 for _ in range(len(self.data[i][1]))] for i in range(len(self.data))]
-        self.C = [[0 for _ in range(len(self.data[i][1]))] for i in range(len(self.data))]
+        self.S = [
+            [0 for _ in range(len(self.data[i][1]))] for i in range(len(self.data))
+        ]
+        self.C = [
+            [0 for _ in range(len(self.data[i][1]))] for i in range(len(self.data))
+        ]
 
         last_start = 0
 
@@ -99,17 +107,20 @@ class Schedule:
                 if task == 0 and mach == 0:
                     pass
                 elif task == 0:
-                    last_start = self.S[task][mach] = self.C[task][mach-1]
+                    last_start = self.S[task][mach] = self.C[task][mach - 1]
                 elif mach == 0:
-                    last_start = self.S[task][mach] = self.C[task-1][mach]
+                    last_start = self.S[task][mach] = self.C[task - 1][mach]
                 else:
-                    last_start = self.S[task][mach] = max(self.C[task][mach-1], self.C[task-1][mach])
+                    last_start = self.S[task][mach] = max(
+                        self.C[task][mach - 1], self.C[task - 1][mach]
+                    )
                 self.C[task][mach] = last_start + self.data[task][1][mach]
 
-        return self.S,self.C
+        return self.S, self.C
 
     def C_max(self):
-        return max(self.C, key = lambda x: x[-1])[-1]
+        return max(self.C, key=lambda x: x[-1])[-1]
+
 
 def C_max(dat):
     Sch = Schedule(dat)
@@ -119,7 +130,7 @@ def C_max(dat):
 
 def NEH(inst: Instance):
     N = inst.data
-    k = 0
+    k = 1
     W = []
     # for i, each in enumerate(N):
     #     W.append([i,each])
@@ -128,27 +139,30 @@ def NEH(inst: Instance):
         W.append(each)
 
     W.sort(key=lambda x: sum(x[1]))
-    print(W)
+    # print(W)
 
     pi_p = []
+    pi_p2 = []
     pi_s = []
     while len(W) != 0:
         j = W.pop()
-        print(j)
+
         for l in range(k):
-            # print(pi_p, l)
-            pi_p.insert(l, j)
-            # print(pi_p)
+            pi_p2 = pi_p.copy()
+            pi_p2.insert(l, j)
+            print([each[0] for each in pi_p2])
             try:
-                if C_max(pi_p) < C_max(pi_s):
-                    pi_s = pi_p
+                if C_max(pi_p2) < C_max(pi_s):
+                    pi_s = pi_p2.copy()
             except ValueError:
-                pi_s = pi_p
-        pi_p = pi_s
+                pi_s = pi_p2.copy()
+        pi_p = pi_s.copy()
+        print(f"best: {[each[0] for each in pi_p]}")
+        print(f"Cmax: {C_max(pi_p)}")
+        pi_s = []
         k += 1
 
     return pi_p
-
 
 
 if __name__ == "__main__":
