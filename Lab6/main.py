@@ -1,9 +1,7 @@
 import math
-
-from numpy import maximum
-from generator import RandomNumberGenerator as Generatotr
+from typing import Generator
+from generator import RandomNumberGenerator as Generator
 import pandas as pd
-import itertools
 import time
 import functools
 
@@ -23,7 +21,7 @@ def timefunc(func):
 class Instance:
     def __init__(self, seed, m, n: int) -> None:
         # Instance of rng class
-        self.__rng = Generatotr(int(seed))
+        self.__rng = Generator(int(seed))
 
         # Number of tasks
         self.n = int(n)
@@ -33,24 +31,6 @@ class Instance:
         self.data = [[None for _ in range(2)] for _ in range(self.n)]
 
     def generate_instance(self) -> None:
-        # for i, each in enumerate(self.data):
-        #     # Index
-        #     each[0] = i + 1
-        #     # Number of operations
-        #     each[1] = 1 +self.__rng.nextInt( 1, math.floor(float(m) * 1.2))
-
-        #     each[2] = []
-        #     for _ in range(each[1]):
-        #         # Performed times
-        #         each[2].append(self.__rng.nextInt(1, 29))
-
-        # for each in self.data:
-        #     each[3] = []
-        #     for _ in range(each[1]):
-        #         # Generating machine assigned to task (μ)
-        #         each[3].append(self.__rng.nextInt(1, self.m))
-
-        # For NEH
 
         for i, each in enumerate(self.data):
             each[0] = i + 1
@@ -148,7 +128,7 @@ def NEH_plus_4(data, current):
     if len(data) > 1:
         W = []
         W = pi.copy()
-        print(best)
+        # print(best)
         i = pi.index(best[1])
         W.pop(i)
 
@@ -160,8 +140,8 @@ def NEH_plus_4(data, current):
         for l in range(len(W) + 1):
             pi_p = W.copy()
             pi_p.insert(l, j)
-            print(f"NEH+ {[each[0] for each in pi_p]}")
-            print(f"C_max: {C_max(pi_p)}")
+            # print(f"NEH+ {[each[0] for each in pi_p]}")
+            # print(f"C_max: {C_max(pi_p)}")
             try:
                 if C_max(pi_p) < C_max(pi_s):
                     pi_s = pi_p.copy()
@@ -170,14 +150,14 @@ def NEH_plus_4(data, current):
                 pi_s = pi_p.copy()
 
         pi_p = pi_s.copy()
-        print(f"NEH+ best: {[each[0] for each in pi_p]}")
-        print(f"NEH+ Cmax: {C_max(pi_p)}\n")
+        # print(f"NEH+ best: {[each[0] for each in pi_p]}")
+        # print(f"NEH+ Cmax: {C_max(pi_p)}\n")
     else:
         pi_p = pi
 
     return pi_p
 
-
+@timefunc
 def NEH(inst: Instance):
     N = inst.data
     k = 1
@@ -204,14 +184,108 @@ def NEH(inst: Instance):
                 # handles first chceck when pi_s is empty
                 pi_s = pi_p2.copy()
 
-        print(f"best: {[each[0] for each in pi_s]}")
-        print(f"Cmax: {C_max(pi_s)}\n")
+        # print(f"best: {[each[0] for each in pi_s]}")
+        # print(f"Cmax: {C_max(pi_s)}\n")
         pi_p = NEH_plus_4(pi_s, j)
 
         pi_s = []
         k += 1
 
     return pi_p
+
+@timefunc
+def simulated_annealing(inst: Instance, seed, epoch = 5):
+    rng = Generator(int(seed))
+
+    N = inst.data
+    # greedy
+    N.sort(key= lambda x: sum(x[1]))
+
+    T = 1550.0
+    Tend = 20.0
+
+    L=int(epoch)
+
+    pi = []
+    pi_new = []
+    pi_s = []
+
+    it = 0
+
+    for each in N:
+        pi.append(each)
+        pi_s.append(each)
+
+    while T > Tend:
+        for _ in range(L):
+            i = rng.nextInt(0, len(N)-1)
+            j = rng.nextInt(0, len(N)-1)
+            pi_new = pi
+            pi_new[i], pi_new[j] = pi_new[j], pi_new[i]
+
+            C_max_new = C_max(pi_new)
+            C_max_old = C_max(pi)
+
+            if C_max_new > C_max_old:
+                r = rng.nextFloat(0,1)
+                delta = C_max_old-C_max_new
+                if r >= math.exp(delta/T):
+                    pi_new = pi
+
+            pi = pi_new
+
+            if C_max(pi) <  C_max(pi_s):
+                pi_s = pi
+
+        it += 1
+        T = T / math.log(it+1)
+
+    return pi_s
+
+@timefunc
+def tabu_search(inst: Instance, cadance = 5, itLimit = 1000):
+    N = inst.data
+    # greedy
+    N.sort(key= lambda x: sum(x[1]))
+
+    tabu = [[0 for _ in range(len(N))] for _ in range(len(N))]
+
+    pi = []
+    pi_new = []
+    pi_s = []
+
+    cadance = int(cadance)
+
+    J = 0
+    K = 0
+
+    for each in N:
+        pi.append(each)
+        pi_s.append(each)
+
+    for it in range(itLimit):
+        c_best = math.inf
+        for j in range(len(N)):
+            for k in range(j+1, len(N)):
+                if tabu[j][k] < it:
+                    pi_new = pi
+                    pi_new[j], pi_new[k] = pi_new[k], pi_new[j]
+
+                    c_max_new = C_max(pi_new)
+                    if c_max_new < c_best:
+                        c_best = c_max_new
+                        J = j
+                        K = k
+
+        pi[J], pi[K] = pi[K], pi[J]
+
+        tabu[J][K] = it + cadance
+        tabu[K][J] = tabu[J][K]
+
+        if C_max(pi) < C_max(pi_s):
+            pi_s = pi
+
+    return pi_s
 
 
 if __name__ == "__main__":
@@ -220,8 +294,20 @@ if __name__ == "__main__":
     inst = Instance(seed, m, n)
     inst.generate_instance()
 
+    print("Instancja:")
     inst.print_instance()
 
     result = NEH(inst)
+    print("NEH:")
+    print_result(result)
+    print("\n")
 
+    result = simulated_annealing(inst, 20, 2*int(n))
+    print("Symulowane Wyżarzanie:")
+    print_result(result)
+    print("\n")
+
+
+    result = tabu_search(inst, n)
+    print("Przeszukiwanie z Zabronieniami:")
     print_result(result)
